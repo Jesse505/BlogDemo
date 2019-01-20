@@ -32,9 +32,33 @@ JNIEXPORT void JNICALL printStuInfoAtNative(JNIEnv* env, jobject obj, jobject st
 }
 
 
+// 比较两个数的大小
+int compare(const void *a, const void *b) {
+    return (*(int*)a - *(int*)b);
+}
+
+//Java层传递数组给Native
+JNIEXPORT void JNICALL inputSortArray(JNIEnv* env, jobject obj, jintArray jintArray) {
+    LOGI("inputSortArray begin");
+    //获取数组中的元素
+    jint *int_arr = env->GetIntArrayElements(jintArray, NULL);
+    //获取数组的长度
+    int length = env->GetArrayLength(jintArray);
+    //快速排序
+    qsort(int_arr, length, sizeof(int), compare);
+    // 同步操作后的数组内存到java中
+    // 最后一个参数mode的解释
+    // 0：Java的数组更新同步，然后释放C/C++的数组内存
+    // JNI_ABORT：Java的数组不会更新同步，但是释放C/C++的数组内存
+    // JNI_COMMIT：Java的数组更新同步，不释放C/C++的数组内存（但是函数执行完了局部的变量还是会释放掉）
+    env->ReleaseIntArrayElements(jintArray, int_arr, 0);
+}
+
+
 static JNINativeMethod gMethods[] = {
         { "helloFromJNI", "()Ljava/lang/String;", (void *)helloFromJNI },
         {"printStuInfoAtNative", "(Lcom/example/github/jnidemo/MainActivity$Student;)V", (void *)printStuInfoAtNative },
+        {"inputSortArray", "([I)V", (void *)inputSortArray}
 };
 
 static int registerNatives(JNIEnv* env) {
