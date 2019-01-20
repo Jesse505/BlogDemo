@@ -90,12 +90,32 @@ JNIEXPORT jobjectArray JNICALL getTwoArray(JNIEnv* env, jobject obj, jint len) {
     return objectIntArray;
 }
 
+
+//Native层传递复杂对象给Java层
+JNIEXPORT jobject JNICALL getStuInfo(JNIEnv* env, jobject obj) {
+    LOGI("getStuInfo begin");
+    jclass stu_cls = env->FindClass("com/example/github/jnidemo/MainActivity$Student");
+    if (stu_cls == NULL) {
+        return NULL;
+    }
+    //获得构造方法Id,函数名为<init>,返回类型为void,即V
+    jmethodID constructMId = env->GetMethodID(stu_cls, "<init>", "(ILjava/lang/String;)V");
+    if (constructMId == NULL) {
+        LOGI("getStuInfo getConstruc failed");
+        return NULL;
+    }
+    jstring name = env->NewStringUTF("赵一飞");
+    //构造一个对象，调用构造方法并且传入相应参数
+    return env->NewObject(stu_cls, constructMId, 26, name);
+}
+
 static JNINativeMethod gMethods[] = {
         { "helloFromJNI", "()Ljava/lang/String;", (void *)helloFromJNI },
         {"printStuInfoAtNative", "(Lcom/example/github/jnidemo/MainActivity$Student;)V", (void *)printStuInfoAtNative },
         {"inputSortArray", "([I)V", (void *)inputSortArray},
         {"getArray", "(I)[I", (void*)getArray},
-        {"getTwoArray", "(I)[[I", (void*)getTwoArray}
+        {"getTwoArray", "(I)[[I", (void*)getTwoArray},
+        {"getStuInfo", "()Lcom/example/github/jnidemo/MainActivity$Student;", (void*)getStuInfo}
 };
 
 static int registerNatives(JNIEnv* env) {

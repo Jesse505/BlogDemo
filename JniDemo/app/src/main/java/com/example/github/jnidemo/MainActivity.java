@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
@@ -35,6 +34,12 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < 3; i++) {
             Log.i(TAG, "Native层返回的二维数组：" + Arrays.toString(getTwoArray(3)[i]));
         }
+        try {
+            Log.i(TAG, "Native层返回的复杂对象 " + getStuInfo().toString());
+        } catch (Throwable t) {
+            Log.i(TAG, "error: " + t.getMessage());
+        }
+
 
     }
 
@@ -54,8 +59,23 @@ public class MainActivity extends AppCompatActivity {
 
     public native int[][] getTwoArray(int len);
 
-    class Student{
+    public native Student getStuInfo();
+
+    public static class Student{
         int age = 21;
         String name = "zhaoyifei";
+
+        public Student() {
+        }
+
+        public Student(int age, String name) {
+            this.age = age;
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return "name:" + name + " age:" + age;
+        }
     }
 }
