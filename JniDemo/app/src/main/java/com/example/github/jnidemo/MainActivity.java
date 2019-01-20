@@ -30,7 +30,12 @@ public class MainActivity extends AppCompatActivity {
         helloFromJNI();
         printStuInfoAtNative(new Student());
         inputSortArray(arrays);
-        Log.i(TAG, Arrays.toString(arrays));
+        Log.i(TAG, "Java层传递给Native层数组，升序排序后：" + Arrays.toString(arrays));
+        Log.i(TAG, "Native层返回的数组：" + Arrays.toString(getArray(10)));
+        for (int i = 0; i < 3; i++) {
+            Log.i(TAG, "Native层返回的二维数组：" + Arrays.toString(getTwoArray(3)[i]));
+        }
+
     }
 
     /**
@@ -44,6 +49,10 @@ public class MainActivity extends AppCompatActivity {
     public native void printStuInfoAtNative(Student stu);
 
     public native void inputSortArray(int[] array);
+
+    public native int[] getArray(int len);
+
+    public native int[][] getTwoArray(int len);
 
     class Student{
         int age = 21;

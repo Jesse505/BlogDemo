@@ -55,10 +55,47 @@ JNIEXPORT void JNICALL inputSortArray(JNIEnv* env, jobject obj, jintArray jintAr
 }
 
 
+//Native层传递数组给Java层
+JNIEXPORT jintArray JNICALL getArray(JNIEnv* env, jobject obj, jint len) {
+    jintArray jintArray = env->NewIntArray(len);
+    jint *elements = env->GetIntArrayElements(jintArray, NULL);
+    for (int i = 0; i < len; ++i) {
+        elements[i] = i;
+    }
+    env->ReleaseIntArrayElements(jintArray, elements, 0);
+    return jintArray;
+}
+
+
+//Native层传递二维数组给Java层
+JNIEXPORT jobjectArray JNICALL getTwoArray(JNIEnv* env, jobject obj, jint len) {
+    //获得一维数组的类引用，即jintArray类型
+    jclass intArrayClass = env->FindClass("[I");
+    //构造指向jintArray一维数组的对象数组，数组长度为len
+    jobjectArray objectIntArray = env->NewObjectArray(len, intArrayClass, NULL);
+    for (int i = 0; i < len; ++i) {
+        jintArray intArray = env->NewIntArray(len);
+        //初始化一个容器，假设len<10
+        jint temp[10];
+        for (int j = 0; j < len; ++j) {
+            temp[j] = j + i;
+        }
+        //设置一维数组的值
+        env->SetIntArrayRegion(intArray, 0, len, temp);
+        //设置对象数组的值
+        env->SetObjectArrayElement(objectIntArray, i, intArray);
+        //删除局部引用
+        env->DeleteLocalRef(intArray);
+    }
+    return objectIntArray;
+}
+
 static JNINativeMethod gMethods[] = {
         { "helloFromJNI", "()Ljava/lang/String;", (void *)helloFromJNI },
         {"printStuInfoAtNative", "(Lcom/example/github/jnidemo/MainActivity$Student;)V", (void *)printStuInfoAtNative },
-        {"inputSortArray", "([I)V", (void *)inputSortArray}
+        {"inputSortArray", "([I)V", (void *)inputSortArray},
+        {"getArray", "(I)[I", (void*)getArray},
+        {"getTwoArray", "(I)[[I", (void*)getTwoArray}
 };
 
 static int registerNatives(JNIEnv* env) {
