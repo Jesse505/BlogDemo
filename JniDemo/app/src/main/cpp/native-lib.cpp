@@ -138,6 +138,70 @@ JNIEXPORT jobject JNICALL getListStudents(JNIEnv *env, jobject obj) {
     return list_obj;
 }
 
+//设置成员属性
+JNIEXPORT void JNICALL accessField(JNIEnv *env, jobject obj) {
+    //获取类引用
+    jclass cls = env->GetObjectClass(obj);
+    //获取属性ID
+    jfieldID fid = env->GetFieldID(cls, "str", "Ljava/lang/String;");
+    if (NULL == fid) {
+        return;
+    }
+    //获取属性值
+    jstring jstr_value = (jstring)env->GetObjectField(obj, fid);
+    const char *value = env->GetStringUTFChars(jstr_value, NULL);
+    LOGI("成员属性：%s", value);
+    env->ReleaseStringUTFChars(jstr_value, value);
+    jstring cValue = env->NewStringUTF("修改后的成员属性");
+    //设置属性值
+    env->SetObjectField(obj, fid, cValue);
+}
+
+
+//设置静态属性
+JNIEXPORT void JNICALL accessStaticField(JNIEnv *env, jobject obj) {
+    //获取类引用
+    jclass cls = env->GetObjectClass(obj);
+    //获取静态属性ID
+    jfieldID fid = env->GetStaticFieldID(cls, "static_str", "Ljava/lang/String;");
+    if (NULL == fid) {
+        return;
+    }
+    jstring jstr_value = (jstring)env->GetStaticObjectField(cls, fid);
+    const char *value = env->GetStringUTFChars(jstr_value, NULL);
+    LOGI("静态成员属性：%s", value);
+    env->ReleaseStringUTFChars(jstr_value, value);
+    jstring cValue = env->NewStringUTF("修改后的静态属性");
+    //设置静态属性值
+    env->SetStaticObjectField(cls, fid, cValue);
+}
+
+//调用成员方法
+JNIEXPORT void JNICALL accessMethod(JNIEnv *env, jobject obj) {
+    //获取类引用
+    jclass cls = env->GetObjectClass(obj);
+    //获取成员方法ID
+    jmethodID mid = env->GetMethodID(cls, "sum", "(II)I");
+    if (NULL == mid) {
+        LOGI("accessMethod failed");
+        return;
+    }
+    int sum = env->CallIntMethod(obj, mid, 1, 2);
+    LOGI("sum: %d", sum);
+}
+
+//调用静态方法
+JNIEXPORT void JNICALL accessStaticMethod(JNIEnv *env, jobject obj) {
+    //获取类引用
+    jclass cls = env->GetObjectClass(obj);
+    //获取静态方法ID
+    jmethodID mid = env->GetStaticMethodID(cls, "diff", "(II)I");
+    if (NULL == mid) {
+        return;
+    }
+    int sum = env->CallStaticIntMethod(cls, mid, 1, 2);
+    LOGI("diff: %d", sum);
+}
 
 static JNINativeMethod gMethods[] = {
         {"helloFromJNI",         "()Ljava/lang/String;",                                 (void *) helloFromJNI},
@@ -146,7 +210,11 @@ static JNINativeMethod gMethods[] = {
         {"getArray",             "(I)[I",                                                (void *) getArray},
         {"getTwoArray",          "(I)[[I",                                               (void *) getTwoArray},
         {"getStuInfo",           "()Lcom/example/github/jnidemo/MainActivity$Student;",  (void *) getStuInfo},
-        {"getListStudents",      "()Ljava/util/ArrayList;",                              (void *) getListStudents}
+        {"getListStudents",      "()Ljava/util/ArrayList;",                              (void *) getListStudents},
+        {"accessField",          "()V",                                                  (void *) accessField},
+        {"accessStaticField",    "()V",                                                  (void *) accessStaticField},
+        {"accessMethod",         "()V",                                                  (void *) accessMethod},
+        {"accessStaticMethod",   "()V",                                                  (void *) accessStaticMethod}
 };
 
 static int registerNatives(JNIEnv *env) {

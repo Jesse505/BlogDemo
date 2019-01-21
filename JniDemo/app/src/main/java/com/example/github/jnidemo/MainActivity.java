@@ -20,6 +20,10 @@ public class MainActivity extends AppCompatActivity {
 
     int[] arrays = {7, 1, 3, 5, 2, 0, 4, 8, 6};
 
+    private static String static_str= "静态属性";
+
+    private String str = "成员属性";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +50,43 @@ public class MainActivity extends AppCompatActivity {
         for (Student stu : students) {
             Log.i(TAG, "Native层返回的集合对象：" + stu.toString());
         }
+
+        accessField();
+        Log.i(TAG, "str：" + str);
+
+        accessStaticField();
+        Log.i(TAG, "static_str：" + static_str);
+
+        accessMethod();
+
+        accessStaticMethod();
+    }
+
+
+    public static class Student {
+        int age = 21;
+        String name = "zhaoyifei";
+
+        public Student() {
+        }
+
+        public Student(int age, String name) {
+            this.age = age;
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return "name:" + name + " age:" + age;
+        }
+    }
+
+    private int sum(int a, int b) {
+        return a + b;
+    }
+
+    private static int diff(int a, int b) {
+        return a - b;
     }
 
     /**
@@ -68,21 +109,11 @@ public class MainActivity extends AppCompatActivity {
 
     public native ArrayList<Student> getListStudents();
 
-    public static class Student {
-        int age = 21;
-        String name = "zhaoyifei";
+    public native void accessField();
 
-        public Student() {
-        }
+    public native void accessStaticField();
 
-        public Student(int age, String name) {
-            this.age = age;
-            this.name = name;
-        }
+    public native void accessMethod();
 
-        @Override
-        public String toString() {
-            return "name:" + name + " age:" + age;
-        }
-    }
+    public native void accessStaticMethod();
 }
