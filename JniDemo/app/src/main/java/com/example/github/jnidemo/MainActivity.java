@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
     static final String TAG = "zhaoyifei";
 
-    int[] arrays = {7,1,3,5,2,0,4,8,6};
+    int[] arrays = {7, 1, 3, 5, 2, 0, 4, 8, 6};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +42,10 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "error: " + t.getMessage());
         }
 
-
+        ArrayList<Student> students = getListStudents();
+        for (Student stu : students) {
+            Log.i(TAG, "Native层返回的集合对象：" + stu.toString());
+        }
     }
 
     /**
@@ -61,7 +66,9 @@ public class MainActivity extends AppCompatActivity {
 
     public native Student getStuInfo();
 
-    public static class Student{
+    public native ArrayList<Student> getListStudents();
+
+    public static class Student {
         int age = 21;
         String name = "zhaoyifei";
 

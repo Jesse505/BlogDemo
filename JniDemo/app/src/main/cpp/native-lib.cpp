@@ -8,25 +8,24 @@
 #define NELEM(x) ((int) (sizeof(x) / sizeof((x)[0])))
 
 
-JNIEXPORT jstring JNICALL helloFromJNI(JNIEnv* env, jobject obj)
-{
+JNIEXPORT jstring JNICALL helloFromJNI(JNIEnv *env, jobject obj) {
     LOGI("动态加载完成啦");
     return env->NewStringUTF("hello world returned.");
 }
 
 
 //Java层传递复杂对象给Native
-JNIEXPORT void JNICALL printStuInfoAtNative(JNIEnv* env, jobject obj, jobject stu_obj){
-    jclass stu_cls = env -> GetObjectClass(stu_obj);//获得student类引用
+JNIEXPORT void JNICALL printStuInfoAtNative(JNIEnv *env, jobject obj, jobject stu_obj) {
+    jclass stu_cls = env->GetObjectClass(stu_obj);//获得student类引用
     if (NULL == stu_cls) {
         LOGI("GetObjectClass failed");
     }
     jfieldID ageFieldId = env->GetFieldID(stu_cls, "age", "I"); //获得属性ID
     jfieldID nameFieldId = env->GetFieldID(stu_cls, "name", "Ljava/lang/String;"); //获得属性ID
     jint age = env->GetIntField(stu_obj, ageFieldId); //获得属性值
-    jstring  name = (jstring)env->GetObjectField(stu_obj, nameFieldId); //获得属性值
-    const char * c_name = env->GetStringUTFChars(name, NULL); //转换为char*
-    LOGI("name: %s, age: %d" , c_name, (int)age);
+    jstring name = (jstring) env->GetObjectField(stu_obj, nameFieldId); //获得属性值
+    const char *c_name = env->GetStringUTFChars(name, NULL); //转换为char*
+    LOGI("name: %s, age: %d", c_name, (int) age);
     env->ReleaseStringUTFChars(name, c_name); //释放引用
     return;
 }
@@ -34,11 +33,11 @@ JNIEXPORT void JNICALL printStuInfoAtNative(JNIEnv* env, jobject obj, jobject st
 
 // 比较两个数的大小
 int compare(const void *a, const void *b) {
-    return (*(int*)a - *(int*)b);
+    return (*(int *) a - *(int *) b);
 }
 
 //Java层传递数组给Native
-JNIEXPORT void JNICALL inputSortArray(JNIEnv* env, jobject obj, jintArray jintArray) {
+JNIEXPORT void JNICALL inputSortArray(JNIEnv *env, jobject obj, jintArray jintArray) {
     LOGI("inputSortArray begin");
     //获取数组中的元素
     jint *int_arr = env->GetIntArrayElements(jintArray, NULL);
@@ -56,7 +55,7 @@ JNIEXPORT void JNICALL inputSortArray(JNIEnv* env, jobject obj, jintArray jintAr
 
 
 //Native层传递数组给Java层
-JNIEXPORT jintArray JNICALL getArray(JNIEnv* env, jobject obj, jint len) {
+JNIEXPORT jintArray JNICALL getArray(JNIEnv *env, jobject obj, jint len) {
     jintArray jintArray = env->NewIntArray(len);
     jint *elements = env->GetIntArrayElements(jintArray, NULL);
     for (int i = 0; i < len; ++i) {
@@ -68,7 +67,7 @@ JNIEXPORT jintArray JNICALL getArray(JNIEnv* env, jobject obj, jint len) {
 
 
 //Native层传递二维数组给Java层
-JNIEXPORT jobjectArray JNICALL getTwoArray(JNIEnv* env, jobject obj, jint len) {
+JNIEXPORT jobjectArray JNICALL getTwoArray(JNIEnv *env, jobject obj, jint len) {
     //获得一维数组的类引用，即jintArray类型
     jclass intArrayClass = env->FindClass("[I");
     //构造指向jintArray一维数组的对象数组，数组长度为len
@@ -92,7 +91,7 @@ JNIEXPORT jobjectArray JNICALL getTwoArray(JNIEnv* env, jobject obj, jint len) {
 
 
 //Native层传递复杂对象给Java层
-JNIEXPORT jobject JNICALL getStuInfo(JNIEnv* env, jobject obj) {
+JNIEXPORT jobject JNICALL getStuInfo(JNIEnv *env, jobject obj) {
     LOGI("getStuInfo begin");
     jclass stu_cls = env->FindClass("com/example/github/jnidemo/MainActivity$Student");
     if (stu_cls == NULL) {
@@ -109,26 +108,58 @@ JNIEXPORT jobject JNICALL getStuInfo(JNIEnv* env, jobject obj) {
     return env->NewObject(stu_cls, constructMId, 26, name);
 }
 
+
+//Native层传递集合对象给Java层
+JNIEXPORT jobject JNICALL getListStudents(JNIEnv *env, jobject obj) {
+    jclass list_cls = env->FindClass("java/util/ArrayList");//获得ArrayList类引用
+
+    if (list_cls == NULL) {
+        return NULL;
+    }
+    jmethodID list_costruct = env->GetMethodID(list_cls, "<init>", "()V"); //获得得构造函数Id
+
+    jobject list_obj = env->NewObject(list_cls, list_costruct); //创建一个Arraylist集合对象
+    //或得Arraylist类中的 add()方法ID，其方法原型为： boolean add(Object object) ;
+    jmethodID list_add = env->GetMethodID(list_cls, "add", "(Ljava/lang/Object;)Z");
+
+    jclass stu_cls = env->FindClass(
+            "com/example/github/jnidemo/MainActivity$Student");//获得Student类引用
+    //获得该类型的构造函数  函数名为 <init> 返回类型必须为 void 即 V
+    jmethodID stu_costruct = env->GetMethodID(stu_cls, "<init>", "(ILjava/lang/String;)V");
+
+    for (int i = 0; i < 3; i++) {
+        jstring str = env->NewStringUTF("Native");
+        //通过调用该对象的构造函数来new 一个 Student实例
+        jobject stu_obj = env->NewObject(stu_cls, stu_costruct, 10, str);  //构造一个对象
+
+        env->CallBooleanMethod(list_obj, list_add, stu_obj); //执行Arraylist类实例的add方法，添加一个stu对象
+    }
+
+    return list_obj;
+}
+
+
 static JNINativeMethod gMethods[] = {
-        { "helloFromJNI", "()Ljava/lang/String;", (void *)helloFromJNI },
-        {"printStuInfoAtNative", "(Lcom/example/github/jnidemo/MainActivity$Student;)V", (void *)printStuInfoAtNative },
-        {"inputSortArray", "([I)V", (void *)inputSortArray},
-        {"getArray", "(I)[I", (void*)getArray},
-        {"getTwoArray", "(I)[[I", (void*)getTwoArray},
-        {"getStuInfo", "()Lcom/example/github/jnidemo/MainActivity$Student;", (void*)getStuInfo}
+        {"helloFromJNI",         "()Ljava/lang/String;",                                 (void *) helloFromJNI},
+        {"printStuInfoAtNative", "(Lcom/example/github/jnidemo/MainActivity$Student;)V", (void *) printStuInfoAtNative},
+        {"inputSortArray",       "([I)V",                                                (void *) inputSortArray},
+        {"getArray",             "(I)[I",                                                (void *) getArray},
+        {"getTwoArray",          "(I)[[I",                                               (void *) getTwoArray},
+        {"getStuInfo",           "()Lcom/example/github/jnidemo/MainActivity$Student;",  (void *) getStuInfo},
+        {"getListStudents",      "()Ljava/util/ArrayList;",                              (void *) getListStudents}
 };
 
-static int registerNatives(JNIEnv* env) {
+static int registerNatives(JNIEnv *env) {
     LOGI("registerNatives begin");
-    jclass  clazz;
-    clazz = env -> FindClass("com/example/github/jnidemo/MainActivity");
+    jclass clazz;
+    clazz = env->FindClass("com/example/github/jnidemo/MainActivity");
 
     if (clazz == NULL) {
         LOGI("clazz is null");
         return JNI_FALSE;
     }
 
-    if (env ->RegisterNatives(clazz, gMethods, NELEM(gMethods)) != JNI_OK) {
+    if (env->RegisterNatives(clazz, gMethods, NELEM(gMethods)) != JNI_OK) {
         LOGI("RegisterNatives error");
         return JNI_FALSE;
     }
@@ -136,7 +167,7 @@ static int registerNatives(JNIEnv* env) {
     return JNI_TRUE;
 }
 
-JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 
     LOGI("jni_OnLoad begin");
 
@@ -155,8 +186,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     return JNI_VERSION_1_4;
 }
 
-void JNI_OnUnload(JavaVM* vm, void *reserved)
-{
+void JNI_OnUnload(JavaVM *vm, void *reserved) {
     return;
 }
 
